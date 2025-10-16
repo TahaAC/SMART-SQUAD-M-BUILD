@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Auth Helper - Invoice App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .info-box label {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .info-box .value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Firebase Auth Helper</h1>
+        <p class="subtitle">Invoice App - Authentication Management</p>
+
+        <div id="messageContainer"></div>
+
+        <!-- Current Configuration -->
+        <div class="section">
+            <h2>📋 Current Configuration</h2>
+            <div class="info-box">
+                <label>Allowed Admin UID</label>
+                <div class="value" id="allowedUid">aoSHGmN7TyOs4eLzJUwSRKmwaIO2</div>
+            </div>
+            <div class="info-box">
+                <label>Expected Email</label>
+                <div class="value">smartsquad.m23@gmail.com</div>
+            </div>
+        </div>
+
+        <!-- Create New User -->
+        <div class="section">
+            <h2>➕ Create New Admin Account</h2>
+            <div class="alert alert-info">
+                <strong>Note:</strong> Use this to create a new account if you don't have one or forgot your password.
+            </div>
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="createEmail" value="smartsquad.m23@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password (min 6 characters)</label>
+                    <input type="password" id="createPassword" placeholder="Enter a secure password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" id="createBtn">Create Admin Account</button>
+            </form>
+        </div>
+
+        <!-- Sign In Test -->
+        <div class="section">
+            <h2>🔐 Test Login</h2>
+            <form id="signInForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signInEmail" value="smartsquad.m23@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signInPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="signInBtn">Test Login</button>
+            </form>
+        </div>
+
+        <!-- Current User Info -->
+        <div class="section" id="userInfoSection" style="display: none;">
+            <h2>✅ Logged In User</h2>
+            <div class="info-box">
+                <label>Email</label>
+                <div class="value" id="currentUserEmail"></div>
+            </div>
+            <div class="info-box">
+                <label>User UID</label>
+                <div class="value" id="currentUserUid"></div>
+            </div>
+            <div class="info-box">
+                <label>Access Status</label>
+                <div class="value" id="accessStatus"></div>
+            </div>
+            <button class="btn btn-secondary" id="signOutBtn">Sign Out</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD25CHzARM-J37ydB_86qk57tku6-WKjcc",
+            authDomain: "inovice-f82ef.firebaseapp.com",
+            projectId: "inovice-f82ef",
+            storageBucket: "inovice-f82ef.firebasestorage.app",
+            messagingSenderId: "877125697453",
+            appId: "1:877125697453:web:67cef8e0ecac8fc6c52b24"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const ALLOWED_UID = "aoSHGmN7TyOs4eLzJUwSRKmwaIO2";
+
+        // Show message
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Update user info display
+        function updateUserInfo(user) {
+            if (user) {
+                document.getElementById('userInfoSection').style.display = 'block';
+                document.getElementById('currentUserEmail').textContent = user.email;
+                document.getElementById('currentUserUid').textContent = user.uid;
+                
+                if (user.uid === ALLOWED_UID) {
+                    document.getElementById('accessStatus').innerHTML = '✅ <strong style="color: green;">ADMIN ACCESS GRANTED</strong>';
+                } else {
+                    document.getElementById('accessStatus').innerHTML = '❌ <strong style="color: red;">ACCESS DENIED (UID mismatch)</strong>';
+                }
+            } else {
+                document.getElementById('userInfoSection').style.display = 'none';
+            }
+        }
+
+        // Auth state listener
+        auth.onAuthStateChanged((user) => {
+            updateUserInfo(user);
+        });
+
+        // Create user form
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('createEmail').value;
+            const password = document.getElementById('createPassword').value;
+            const btn = document.getElementById('createBtn');
+            
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                showMessage(`✅ <strong>Account created successfully!</strong><br>Email: ${email}<br>UID: <code>${userCredential.user.uid}</code><br><br>${userCredential.user.uid === ALLOWED_UID ? '✅ This UID matches the allowed admin UID!' : '⚠️ <strong>WARNING:</strong> This UID does NOT match the allowed admin UID. Update the ALLOWED_UID in index.html to: <code>' + userCredential.user.uid + '</code>'}`, userCredential.user.uid === ALLOWED_UID ? 'success' : 'warning');
+                updateUserInfo(userCredential.user);
+            } catch (error) {
+                let errorMsg = 'Error: ' + error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMsg = '⚠️ This email is already registered. Use the "Test Login" section below to sign in instead.';
+                }
+                showMessage(errorMsg, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Admin Account';
+            }
+        });
+
+        // Sign in form
+        document.getElementById('signInForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signInEmail').value;
+            const password = document.getElementById('signInPassword').value;
+            const btn = document.getElementById('signInBtn');
+            
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+            
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                showMessage(`✅ <strong>Login successful!</strong><br>Email: ${email}<br>UID: <code>${userCredential.user.uid}</code><br><br>${userCredential.user.uid === ALLOWED_UID ? '✅ This UID matches! You can now use the main app.' : '❌ <strong>ACCESS DENIED:</strong> This UID does NOT match the allowed admin UID.<br>Update ALLOWED_UID in index.html to: <code>' + userCredential.user.uid + '</code>'}`, userCredential.user.uid === ALLOWED_UID ? 'success' : 'error');
+                updateUserInfo(userCredential.user);
+            } catch (error) {
+                let errorMsg = 'Login failed: ' + error.message;
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    errorMsg = '❌ Invalid email or password. Please check your credentials.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMsg = '🔒 <strong>Account locked due to multiple failed attempts.</strong><br>Please wait 15-30 minutes or use the password reset feature.';
+                }
+                showMessage(errorMsg, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Login';
+            }
+        });
+
+        // Sign out button
+        document.getElementById('signOutBtn').addEventListener('click', async () => {
+            await auth.signOut();
+            showMessage('✅ Signed out successfully', 'success');
+        });
+    </script>
+</body>
+</html>

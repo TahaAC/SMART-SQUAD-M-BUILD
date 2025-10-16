@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Admin UID - Update this if you change the admin user
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == 'aoSHGmN7TyOs4eLzJUwSRKmwaIO2';
+    }
+    
+    // Users collection - Admin can read/write their own document
+    match /users/{userId} {
+      allow read, write: if isAdmin() && userId == 'aoSHGmN7TyOs4eLzJUwSRKmwaIO2';
+    }
+    
+    // Quotes/Invoices collection - Admin can read/write all documents
+    match /quotes/{quoteId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Storage rules for uploaded files (if using Firebase Storage)
+    // These would go in storage.rules file instead
+  }
+}
