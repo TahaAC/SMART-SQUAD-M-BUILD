@@ -5624,11 +5624,28 @@ function formatDate(dateString) {
         // Send password reset email
         async function sendPasswordReset(email) {
             try {
-                await auth.sendPasswordResetEmail(email);
+                // Configure action code settings (optional but recommended)
+                const actionCodeSettings = {
+                    // URL you want to redirect back to after password reset
+                    url: window.location.origin + window.location.pathname,
+                    handleCodeInApp: false
+                };
+                
+                // Send password reset email with proper error handling
+                await firebase.auth().sendPasswordResetEmail(email, actionCodeSettings);
+                console.log('Password reset email sent successfully to:', email);
                 return { success: true };
             } catch (error) {
-                console.error('Password reset error:', error);
-                return { success: false, error: error.message };
+                console.error('Password reset error details:', error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                
+                // Return more detailed error information
+                return { 
+                    success: false, 
+                    error: error.message,
+                    errorCode: error.code 
+                };
             }
         }
 
@@ -7980,39 +7997,50 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             document.getElementById('resetEmailSuccess').style.display = 'none';
 
             try {
+                console.log('Attempting to send password reset email to:', email);
                 const result = await sendPasswordReset(email);
+                console.log('Password reset result:', result);
                 
                 if (result.success) {
                     document.getElementById('resetEmailSuccess').textContent = 
-                        'Password reset email sent! Check your inbox for instructions.';
+                        'Password reset email sent! Check your inbox (and spam folder) for instructions.';
                     document.getElementById('resetEmailSuccess').style.display = 'block';
                     document.getElementById('resetEmail').value = '';
-                    showNotification('Password reset email sent successfully!', 'success');
+                    showNotification('Password reset email sent successfully! Check your inbox.', 'success');
                     
-                    // Auto-hide modal after 3 seconds
+                    // Auto-hide modal after 5 seconds (more time to read)
                     setTimeout(() => {
                         hideForgotPasswordModal();
-                    }, 3000);
+                    }, 5000);
                 } else {
                     let errorMessage = 'Failed to send reset email. Please try again.';
                     
-                    if (result.error.includes('user-not-found')) {
+                    // Handle specific Firebase error codes
+                    if (result.errorCode === 'auth/user-not-found' || result.error.includes('user-not-found')) {
                         errorMessage = 'No account found with this email address.';
-                    } else if (result.error.includes('invalid-email')) {
+                    } else if (result.errorCode === 'auth/invalid-email' || result.error.includes('invalid-email')) {
                         errorMessage = 'Please enter a valid email address.';
-                    } else if (result.error.includes('network-request-failed')) {
-                        errorMessage = 'Network error. Please check your connection.';
+                    } else if (result.errorCode === 'auth/network-request-failed' || result.error.includes('network-request-failed')) {
+                        errorMessage = 'Network error. Please check your internet connection and try again.';
+                    } else if (result.errorCode === 'auth/too-many-requests' || result.error.includes('too-many-requests')) {
+                        errorMessage = 'Too many attempts. Please wait a few minutes and try again.';
+                    } else if (result.errorCode === 'auth/operation-not-allowed' || result.error.includes('operation-not-allowed')) {
+                        errorMessage = 'Password reset is not enabled. Please contact support.';
+                    } else {
+                        errorMessage = `Error: ${result.error}`;
                     }
                     
+                    console.error('Password reset failed:', errorMessage);
                     document.getElementById('resetEmailError').textContent = errorMessage;
                     document.getElementById('resetEmailError').style.display = 'block';
                     showNotification(errorMessage, 'error');
                 }
             } catch (error) {
-                console.error('Forgot password error:', error);
-                document.getElementById('resetEmailError').textContent = 'An unexpected error occurred. Please try again.';
+                console.error('Unexpected forgot password error:', error);
+                const errorMsg = error.message || 'An unexpected error occurred. Please try again.';
+                document.getElementById('resetEmailError').textContent = errorMsg;
                 document.getElementById('resetEmailError').style.display = 'block';
-                showNotification('An unexpected error occurred. Please try again.', 'error');
+                showNotification(errorMsg, 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
