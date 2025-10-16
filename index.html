@@ -8274,5 +8274,115 @@ document.getElementById('shareEmail').addEventListener('click', function() {
 
 
     </script>
+
+    <!-- Developer Credit Footer -->
+    <footer style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, rgba(26, 58, 95, 0.95), rgba(44, 82, 130, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: white;
+        text-align: center;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        z-index: 999;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+    " id="developerCredit">
+        <span style="opacity: 0.9;">
+            Designed & Developed by <strong style="color: #f97316; font-weight: 700;">Abbas</strong>
+        </span>
+        <span style="margin: 0 10px; opacity: 0.5;">|</span>
+        <span style="opacity: 0.8; font-size: 0.8rem;">
+            <i class="fas fa-heart" style="color: #ef4444;"></i> Crafted with passion
+        </span>
+    </footer>
+
+    <style>
+        /* Show footer only when logged in */
+        .app-container:not([style*="display: none"]) ~ #developerCredit {
+            display: block !important;
+        }
+
+        /* Hide footer on login page */
+        .modal.active ~ #developerCredit {
+            display: none !important;
+        }
+
+        /* Adjust app container padding to account for footer */
+        .app-container {
+            padding-bottom: 45px !important;
+        }
+
+        /* Mobile responsive footer */
+        @media (max-width: 768px) {
+            #developerCredit {
+                font-size: 0.75rem;
+                padding: 6px 15px;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            #developerCredit span {
+                display: inline-block;
+            }
+        }
+
+        /* Animation */
+        @keyframes slideUpFooter {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #developerCredit {
+            animation: slideUpFooter 0.5s ease-out;
+        }
+
+        /* Hover effect */
+        #developerCredit:hover {
+            background: linear-gradient(135deg, rgba(26, 58, 95, 1), rgba(44, 82, 130, 1));
+        }
+    </style>
+
+    <script>
+        // Show footer when app is loaded
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const footer = document.getElementById('developerCredit');
+                const appContainer = document.getElementById('appContainer');
+                
+                // Show footer when user is logged in
+                if (appContainer && appContainer.style.display !== 'none') {
+                    footer.style.display = 'block';
+                }
+            }, 1000);
+        });
+
+        // Update footer visibility on auth state change
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().onAuthStateChanged(function(user) {
+                const footer = document.getElementById('developerCredit');
+                if (user) {
+                    setTimeout(function() {
+                        footer.style.display = 'block';
+                    }, 500);
+                } else {
+                    footer.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>
