@@ -6,6 +6,7 @@
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1a3a5f">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SMART SQUAD Invoice">
@@ -48,6 +49,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js?v=1.0.0"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js?v=1.0.0"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js?v=1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+    <script src="js/document-handler.js"></script>
+    <script src="js/sharing.js"></script>
     
     <!-- Include jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -317,18 +321,18 @@
             color: var(--primary-color);
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .user-dropdown {
+            position: relative;
         }
 
-        .user-email-display {
+        .user-email {
             font-weight: 500;
             color: var(--text-dark);
             padding: 8px 12px;
             background: rgba(26, 58, 95, 0.1);
             border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all var(--transition-normal);
             display: flex;
             align-items: center;
             gap: 6px;
@@ -336,52 +340,16 @@
             font-size: 0.9rem;
         }
 
-        .user-email-display::before {
-            content: '\f007';
+        .user-email:hover {
+            background: rgba(26, 58, 95, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .user-email::after {
+            content: '\f107';
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
-            font-size: 0.9em;
-            color: var(--primary-color);
-        }
-
-        .logout-button {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius-md);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all var(--transition-normal);
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-        }
-
-        .logout-button:hover {
-            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-        }
-
-        .logout-button:active {
-            transform: translateY(0);
-        }
-
-        .logout-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .logout-button i {
-            font-size: 1em;
-        }
-
-        /* Old dropdown styles - keeping for backward compatibility */
-        .user-dropdown {
-            position: relative;
+            font-size: 0.8em;
         }
 
         .dropdown-menu {
@@ -2030,38 +1998,48 @@
         }
 
         .auth-links {
+            margin-top: 15px;
             text-align: center;
-            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
         }
 
         .forgot-password-link {
             color: var(--primary-color);
             text-decoration: none;
             font-size: 0.9rem;
-            font-weight: 500;
+            transition: all var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .forgot-password-link:hover {
-            text-decoration: underline;
-            color: var(--primary-hover);
+            color: var(--secondary-color);
+            transform: translateY(-1px);
         }
 
-        .reset-description {
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 15px;
+        .message-box {
+            padding: 10px;
+            border-radius: var(--border-radius-md);
+            margin: 10px 0;
             font-size: 0.9rem;
-            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .success-message {
-            background: rgba(34, 197, 94, 0.1);
+        .message-box.success {
+            background: var(--success-bg);
             color: var(--success-color);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 10px;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+            border: 1px solid var(--success-border);
+        }
+
+        .message-box.error {
+            background: var(--error-bg);
+            color: var(--danger-color);
+            border: 1px solid var(--error-border);
         }
 
         .mb-4 {
@@ -2238,28 +2216,12 @@
             }
             
             .user-info {
-                flex-wrap: wrap;
-                justify-content: center;
+                justify-content: space-between;
                 align-items: center;
-                gap: 10px;
             }
             
-            .user-email-display {
-                font-size: 0.85rem;
-                padding: 6px 10px;
-                flex: 1 1 auto;
-                min-width: 150px;
-                text-align: center;
-            }
-            
-            .user-email-display::before {
-                display: none;
-            }
-            
-            .logout-button {
-                padding: 8px 16px;
-                font-size: 0.85rem;
-                flex-shrink: 0;
+            .mobile-logout-btn {
+                display: flex;
             }
             
             .action-buttons {
@@ -2481,8 +2443,8 @@
             padding: 12px var(--bg-light);
             display: flex;
             justify-content: center;
-            gap: 10px;
-            background: var(--bg-light);
+            gap:;
+            background: 10px;
             border-top: 1px solid var(--border-color);
             flex-wrap: wrap;
         }
@@ -3096,37 +3058,7 @@
                     <button type="submit" class="action-button glass-button" id="authSubmitBtn">
                         <i class="fas fa-sign-in-alt"></i> <span id="authButtonText">Login</span>
                     </button>
-                    <div class="auth-links">
-                        <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot your password?</a>
-                    </div>
                     <div id="authEmailError" class="error-message" style="display: none;"></div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Forgot Password Modal -->
-    <div class="modal" id="forgotPasswordModal" style="display: none;">
-        <div class="modal-content auth-modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Reset Password</h3>
-                <button class="modal-close" id="closeForgotPasswordModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="auth-logo">
-                    <img src="logo.png" alt="Company Logo">
-                </div>
-                <p class="reset-description">Enter your email address and we'll send you a link to reset your password.</p>
-                <form id="forgotPasswordForm" class="auth-form">
-                    <input type="email" id="resetEmail" class="glass-input" placeholder="Enter your email" required>
-                    <button type="submit" class="action-button glass-button" id="resetSubmitBtn">
-                        <i class="fas fa-paper-plane"></i> Send Reset Link
-                    </button>
-                    <div class="auth-links">
-                        <a href="#" id="backToLoginLink" class="forgot-password-link">Back to Login</a>
-                    </div>
-                    <div id="resetEmailError" class="error-message" style="display: none;"></div>
-                    <div id="resetEmailSuccess" class="success-message" style="display: none;"></div>
                 </form>
             </div>
         </div>
@@ -3155,11 +3087,16 @@
             </div>
             
             <div class="user-info">
-                <div class="user-email-display" id="userEmail">user@example.com</div>
-                <button class="logout-button" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </button>
+                <div class="user-dropdown">
+                    <div class="user-email" id="userEmail">user@example.com</div>
+                    <div class="dropdown-menu">
+                        <hr class="dropdown-divider">
+                        <button class="dropdown-item logout-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+                <!-- Removed mobile logout button to keep only one logout option -->
             </div>
         </div>
 
@@ -3462,9 +3399,49 @@
                 <button class="action-button glass-button" id="printDetailBtn">
                     <i class="fas fa-print"></i> Print
                 </button>
+                <button class="action-button glass-button" id="shareDetailBtn">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
                 <button class="action-button glass-button" id="closeDetailModalFooter">
                     Close
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content share-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Share Document</h3>
+                <button class="modal-close" id="closeShareModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-options">
+                    <div class="share-option email" id="shareEmail">
+                        <i class="fas fa-envelope"></i>
+                        <h4>Email</h4>
+                        <p>Send via email with PDF</p>
+                    </div>
+
+                    <div class="share-option whatsapp" id="shareWhatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                        <h4>WhatsApp</h4>
+                        <p>Share via WhatsApp</p>
+                    </div>
+
+                    <div class="share-option sms" id="shareSMS">
+                        <i class="fas fa-sms"></i>
+                        <h4>SMS</h4>
+                        <p>Send via SMS</p>
+                    </div>
+
+                    <div class="share-option download" id="shareDownload">
+                        <i class="fas fa-download"></i>
+                        <h4>Download PDF</h4>
+                        <p>Save PDF to device</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -3499,13 +3476,6 @@
     <i class="fas fa-sms"></i>
     <h4>SMS</h4>
     <p>Send invoice via SMS</p>
-</div>
-
-<!-- New Email Option -->
-<div class="share-option email" id="shareEmail" tabindex="0" style="cursor:pointer;">
-    <i class="fas fa-envelope"></i>
-    <h4>Email</h4>
-    <p>Send invoice via Email</p>
 </div>
 
 <div class="modal-footer">
@@ -3649,6 +3619,30 @@
         </div>
     </div>
 
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content auth-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-key"></i> Reset Password
+                </h3>
+                <button class="modal-close" onclick="closeResetPasswordModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="resetPasswordForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="resetEmail" class="form-label">Email Address</label>
+                        <input type="email" id="resetEmail" class="glass-input" required>
+                    </div>
+                    <div id="resetPasswordMessage" class="message-box" style="display: none;"></div>
+                    <button type="submit" class="action-button glass-button">
+                        <i class="fas fa-paper-plane"></i> Send Reset Link
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Firebase configuration
         const firebaseConfig = {
@@ -3666,8 +3660,50 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
+        // Reset Password Functions
+        function showResetPasswordModal(event) {
+            event.preventDefault();
+            const modal = document.getElementById('resetPasswordModal');
+            modal.classList.add('active');
+            document.getElementById('resetEmail').value = document.getElementById('email').value;
+        }
+
+        function closeResetPasswordModal() {
+            const modal = document.getElementById('resetPasswordModal');
+            modal.classList.remove('active');
+            document.getElementById('resetPasswordMessage').style.display = 'none';
+            document.getElementById('resetPasswordMessage').className = 'message-box';
+        }
+
+        // Handle reset password form submission
+        document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const messageBox = document.getElementById('resetPasswordMessage');
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                messageBox.textContent = 'Password reset link sent! Check your email.';
+                messageBox.className = 'message-box success';
+                messageBox.style.display = 'flex';
+                
+                // Close the modal after 3 seconds
+                setTimeout(() => {
+                    closeResetPasswordModal();
+                }, 3000);
+            } catch (error) {
+                messageBox.textContent = error.message;
+                messageBox.className = 'message-box error';
+                messageBox.style.display = 'flex';
+            }
+        });
+
         // Global variables
-        const ALLOWED_UID = "aoSHGmN7TyOs4eLzJUwSRKmwaIO2";
+        // Array of allowed admin UIDs
+        const ALLOWED_UIDS = [
+            "ulGAFDpJlIYBSvqDkydbIZIij5K2",
+            "pRwKXPCJvvNNlqN9z5uDhUQEgRf1"
+        ];
         let currentUser = null;
         let companyInfo = {
             name: "SMART SQUAD M BUILD PTY LTD",
@@ -3714,42 +3750,16 @@
         let syncInProgress = false;
 
         // PWA Service Worker Registration
-        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Check if we're running on HTTPS or localhost
-                const isHttps = location.protocol === 'https:';
-                const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-                
-                if (isHttps || isLocalhost) {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(registration => {
-                            console.log('SW registered: ', registration);
-                        })
-                        .catch(registrationError => {
-                            console.log('SW registration failed: ', registrationError);
-                        });
-                } else {
-                    console.log('Service Worker not registered: Must be served over HTTPS or from localhost');
-                }
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
             });
-        }
-
-        // Conditionally load manifest to avoid CORS issues with file:// protocol
-        if (location.protocol !== 'file:') {
-            const manifestLink = document.querySelector('link[rel="manifest"]');
-            if (!manifestLink) {
-                const link = document.createElement('link');
-                link.rel = 'manifest';
-                link.href = './site.webmanifest';
-                document.head.appendChild(link);
-            }
-        } else {
-            // Remove manifest link if it exists when using file:// protocol
-            const manifestLink = document.querySelector('link[rel="manifest"]');
-            if (manifestLink) {
-                manifestLink.remove();
-            }
         }
 // Add this function to handle sharing
 async function shareViaWhatsApp(id, type) {
@@ -3803,55 +3813,50 @@ async function shareViaSMS(id, type) {
     }
 }
 
+// Toggle share menu dropdown
+function toggleShareMenu(docId) {
+    // Close all other share menus first
+    document.querySelectorAll('.share-menu').forEach(menu => {
+        if (menu.id !== `shareMenu_${docId}`) {
+            menu.classList.remove('show');
+        }
+    });
+    
+    // Toggle the clicked share menu
+    const menu = document.getElementById(`shareMenu_${docId}`);
+    if (menu) {
+        menu.classList.toggle('show');
+    }
+}
+
+// Close share menus when clicking outside
+document.addEventListener('click', (event) => {
+    if (!event.target.closest('.share-dropdown')) {
+        document.querySelectorAll('.share-menu').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    }
+});
+
 function buildShareMessage(data, type) {
-    const companyName = companyInfo.name || 'SMART SQUAD M BUILD PTY LTD';
+    const companyName = 'SMART SQUAD M BUILD PTY LTD';
     const documentNumber = data.number || 'N/A';
-    const clientName = data.billTo?.name || data.clientName || 'Client';
-    const totalAmount = data.total || data.totalAmount || '0.00';
-    const documentDate = data.date ? formatDate(data.date) : 'N/A';
+    const clientName = data.clientName || 'Client';
+    const totalAmount = data.totalAmount || '0.00';
+    const dueDate = data.dueDate ? formatDate(data.dueDate) : 'N/A';
     
     let message = `${type.charAt(0).toUpperCase() + type.slice(1)} from ${companyName}\n`;
     message += `${type.charAt(0).toUpperCase() + type.slice(1)} Number: ${documentNumber}\n`;
-    message += `Date: ${documentDate}\n`;
     message += `Client: ${clientName}\n`;
-    message += `Total Amount: $${typeof totalAmount === 'number' ? totalAmount.toFixed(2) : totalAmount}\n`;
+    message += `Total Amount: $${totalAmount}\n`;
     
-    if (type === 'invoice' && data.dueDate) {
-        message += `Due Date: ${formatDate(data.dueDate)}\n`;
+    if (type === 'invoice' && dueDate !== 'N/A') {
+        message += `Due Date: ${dueDate}\n`;
     }
     
-    message += `\nThank you for your business!\n`;
-    message += `\n${companyName}`;
-    
-    // Add contact info if available
-    if (companyInfo.phone) {
-        message += `\nPhone: ${companyInfo.phone}`;
-    }
-    if (companyInfo.email) {
-        message += `\nEmail: ${companyInfo.email}`;
-    }
+    message += `\nThank you for your business!`;
     
     return message;
-}
-
-// Utility function to format dates
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return dateString; // Return original if invalid
-        
-        // Format as DD/MM/YYYY
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        
-        return `${day}/${month}/${year}`;
-    } catch (error) {
-        console.error('Error formatting date:', error);
-        return dateString;
-    }
 }
         // Initialize IndexedDB for offline storage
         function initIndexedDB() {
@@ -4311,26 +4316,20 @@ function formatDate(dateString) {
             installBannerShown = true;
         }
 
-        const pwaInstallBtnElement = document.getElementById('pwaInstallBtn');
-        if (pwaInstallBtnElement) {
-            pwaInstallBtnElement.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response to the install prompt: ${outcome}`);
-                    deferredPrompt = null;
-                    hidePWAInstallBanner();
-                }
-            });
-        }
-
-        const pwaCloseBtnElement = document.getElementById('pwaCloseBtn');
-        if (pwaCloseBtnElement) {
-            pwaCloseBtnElement.addEventListener('click', () => {
+        document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
                 hidePWAInstallBanner();
-                localStorage.setItem('pwa-install-dismissed', 'true');
-            });
-        }
+            }
+        });
+
+        document.getElementById('pwaCloseBtn').addEventListener('click', () => {
+            hidePWAInstallBanner();
+            localStorage.setItem('pwa-install-dismissed', 'true');
+        });
 
         function hidePWAInstallBanner() {
             const banner = document.getElementById('pwaInstallBanner');
@@ -4653,9 +4652,7 @@ function formatDate(dateString) {
             }
 
             auth.onAuthStateChanged(async (user) => {
-                console.log('Auth state changed, user:', user && user.uid ? user.uid : user);
-                if (user && user.uid === ALLOWED_UID) {
-                    console.log('Detected allowed admin UID. Setting currentUser.');
+                if (user && ALLOWED_UIDS.includes(user.uid)) {
                     currentUser = user;
                     document.getElementById('userEmail').textContent = user.email;
                     authRetryCount = 0;
@@ -4686,9 +4683,8 @@ function formatDate(dateString) {
                         initializeApp();
                     }
                 } else if (user) {
-                    console.error(`Access denied for user: ${user.email} (UID: ${user.uid}). Expected UID: ${ALLOWED_UID}`);
                     await auth.signOut();
-                    showNotification(`Access denied. You are not authorized to use this system. User UID: ${user.uid}`, "error");
+                    showNotification("Access denied. You are not authorized to use this system.", "error");
                     showAuthModal();
                 } else {
                     currentUser = null;
@@ -4749,9 +4745,7 @@ function formatDate(dateString) {
         // Initialize the main application
         function initializeApp() {
             document.getElementById('appContainer').style.display = 'block';
-            const authModal = document.getElementById('authModal');
-            authModal.style.display = 'none';
-            authModal.classList.remove('active');
+            document.getElementById('authModal').style.display = 'none';
             
             // Show/hide offline indicator based on current status
             if (isOnline) {
@@ -5179,15 +5173,12 @@ function formatDate(dateString) {
                     });
                 }
             } catch (error) {
-                // Don't show errors if user is not logged in (permission errors are expected)
-                if (!currentUser || error.code === 'permission-denied' || error.message.includes('Missing or insufficient permissions')) {
-                    console.log("Skipping settings load - user not authenticated");
+                console.error("Error loading user settings: " + error.message);
+                if (error.message.includes('Missing or insufficient permissions')) {
+                    showNotification("Permission error accessing user data. Please check security rules.", "warning");
                 } else {
-                    console.error("Error loading user settings: " + error.message);
                     showNotification("Error loading settings: " + error.message, "error");
                 }
-                
-                // Always update UI with default values
                 updateCompanyInfoHeader();
                 updateHeaderLogo(logoData);
                 populateSettingsForm();
@@ -5593,103 +5584,61 @@ function formatDate(dateString) {
         // Show authentication modal
         function showAuthModal() {
             document.getElementById('appContainer').style.display = 'none';
-            const authModal = document.getElementById('authModal');
-            authModal.style.display = 'flex';
-            authModal.classList.add('active');
-            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('authModal').style.display = 'flex';
             document.getElementById('authForm').reset();
             document.getElementById('authEmailError').style.display = 'none';
             document.getElementById('authButtonText').textContent = 'Login';
-        }
-
-        // Show forgot password modal
-        function showForgotPasswordModal() {
-            const authModal = document.getElementById('authModal');
-            authModal.style.display = 'none';
-            authModal.classList.remove('active');
-            document.getElementById('forgotPasswordModal').style.display = 'flex';
-            document.getElementById('forgotPasswordForm').reset();
-            document.getElementById('resetEmailError').style.display = 'none';
-            document.getElementById('resetEmailSuccess').style.display = 'none';
-        }
-
-        // Hide forgot password modal and show auth modal
-        function hideForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').style.display = 'none';
-            const authModal = document.getElementById('authModal');
-            authModal.style.display = 'flex';
-            authModal.classList.add('active');
-        }
-
-        // Send password reset email
-        async function sendPasswordReset(email) {
-            try {
-                // Configure action code settings (optional but recommended)
-                const actionCodeSettings = {
-                    // URL you want to redirect back to after password reset
-                    url: window.location.origin + window.location.pathname,
-                    handleCodeInApp: false
-                };
-                
-                // Send password reset email with proper error handling
-                await firebase.auth().sendPasswordResetEmail(email, actionCodeSettings);
-                console.log('Password reset email sent successfully to:', email);
-                return { success: true };
-            } catch (error) {
-                console.error('Password reset error details:', error);
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
-                
-                // Return more detailed error information
-                return { 
-                    success: false, 
-                    error: error.message,
-                    errorCode: error.code 
-                };
-            }
         }
 
         // Setup event listeners
         function setupEventListeners() {
             setupLogoutButton();
 
-            const saveButtonElement = document.getElementById('saveButton');
-            if (saveButtonElement) {
-                saveButtonElement.addEventListener('click', saveDocument);
-            }
+            document.getElementById('saveButton').addEventListener('click', saveDocument);
             
             // Update the clear form button to cancel form
-            const cancelFormElement = document.getElementById('cancelForm');
-            if (cancelFormElement) {
-                cancelFormElement.addEventListener('click', cancelForm);
-            }
+            document.getElementById('cancelForm').addEventListener('click', cancelForm);
             
             // Add print PDF button event listener
-            const printPdfButtonElement = document.getElementById('printPdfButton');
-            if (printPdfButtonElement) {
-                printPdfButtonElement.addEventListener('click', () => {
-                    const documentData = getDocumentDataFromForm();
-                    if (documentData) {
-                        printDocument(documentData);
-                    }
-                });
-            }
+            document.getElementById('printPdfButton').addEventListener('click', () => {
+                const documentData = getDocumentDataFromForm();
+                if (documentData) {
+                    printDocument(documentData);
+                }
+            });
             
             // Add email button event listener
-            const emailButtonElement = document.getElementById('emailButton');
-            if (emailButtonElement) {
-                emailButtonElement.addEventListener('click', () => {
-                    const documentData = getDocumentDataFromForm();
-                    if (documentData) {
-                        emailDocument(documentData);
-                    }
-                });
-            }
-            
+            document.getElementById('emailButton').addEventListener('click', () => {
+                const documentData = getDocumentDataFromForm();
+                if (documentData) {
+                    emailDocument(documentData);
+                }
+            });
+// Share via WhatsApp Function
+function shareViaWhatsApp(data) {
+    const message = `Hello ${data.billTo.name || ''},
+
+Here is your ${data.type.toLowerCase()} ${data.number} from ${companyInfo.name}.
+Total Amount: $${data.total.toFixed(2)}
+
+You can view the details here: [Link to your app or a hosted PDF if available - otherwise omit]
+
+For any questions, contact us at ${companyInfo.phone}.`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+// Share via SMS Function
+function shareViaSMS(data) {
+    const message = `Hi ${data.billTo.name || ''}, here is your ${data.type.toLowerCase()} ${data.number} from ${companyInfo.name}. Total: $${data.total.toFixed(2)}. Contact ${companyInfo.phone} for details.`;
+    
+    // This works on mobile devices with SMS capability
+    const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+    window.open(smsUrl, '_blank');
+}
             // Update the add item button event listener
-            const addItemElement = document.getElementById('addItem');
-            if (addItemElement) {
-                addItemElement.addEventListener('click', () => {
+            document.getElementById('addItem').addEventListener('click', () => {
                 if (isMobileDevice()) {
                     // Mobile version
                     const card = addMobileItemCard();
@@ -5740,13 +5689,10 @@ function formatDate(dateString) {
                 
                 // Update original form values after adding a new item
                 storeOriginalFormValues();
-                });
-            }
+            });
 
             // Desktop items table event listeners
-            const itemsTableBodyElement = document.getElementById('itemsTableBody');
-            if (itemsTableBodyElement) {
-                itemsTableBodyElement.addEventListener('click', function(e) {
+            document.getElementById('itemsTableBody').addEventListener('click', function(e) {
                 if (e.target.classList.contains('remove-item') || e.target.closest('.remove-item')) {
                     const row = e.target.closest('.item-row');
                     if (document.querySelectorAll('.item-row').length > 1) {
@@ -5758,10 +5704,10 @@ function formatDate(dateString) {
                         showNotification('Cannot remove the last item row.', 'warning');
                     }
                 }
-                });
+            });
 
-                // Fixed calculation for desktop items
-                itemsTableBodyElement.addEventListener('input', function(e) {
+            // Fixed calculation for desktop items
+            document.getElementById('itemsTableBody').addEventListener('input', function(e) {
                 if (e.target.classList.contains('item-quantity') || 
                     e.target.classList.contains('item-hours') || 
                     e.target.classList.contains('item-rate')) {
@@ -5779,62 +5725,38 @@ function formatDate(dateString) {
                     amountInput.value = amt.toFixed(2);
                     calculateTotals();
                 }
-                });
-            }
+            });
 
-            const documentTypeElement = document.getElementById('documentType');
-            if (documentTypeElement) {
-                documentTypeElement.addEventListener('change', function() {
-                    updateSequenceDisplay();
-                    if (!editingDocId) {
-                        updateDocumentNumberDisplay();
-                    }
-                    // Update original form values when document type changes
-                    storeOriginalFormValues();
-                });
-            }
+            document.getElementById('documentType').addEventListener('change', function() {
+                updateSequenceDisplay();
+                if (!editingDocId) {
+                    updateDocumentNumberDisplay();
+                }
+                // Update original form values when document type changes
+                storeOriginalFormValues();
+            });
 
-            const closeDetailModalElement = document.getElementById('closeDetailModal');
-            if (closeDetailModalElement) {
-                closeDetailModalElement.addEventListener('click', function() {
-                    document.getElementById('documentDetailModal').style.display = 'none';
-                });
-            }
-            
-            const closeDetailModalFooterElement = document.getElementById('closeDetailModalFooter');
-            if (closeDetailModalFooterElement) {
-                closeDetailModalFooterElement.addEventListener('click', function() {
-                    document.getElementById('documentDetailModal').style.display = 'none';
-                });
-            }
+            document.getElementById('closeDetailModal').addEventListener('click', function() {
+                document.getElementById('documentDetailModal').style.display = 'none';
+            });
+            document.getElementById('closeDetailModalFooter').addEventListener('click', function() {
+                document.getElementById('documentDetailModal').style.display = 'none';
+            });
 
-            const printDetailBtnElement = document.getElementById('printDetailBtn');
-            if (printDetailBtnElement) {
-                printDetailBtnElement.addEventListener('click', function() {
-                    if (currentDocumentForShare) {
-                        printDocument(currentDocumentForShare.data);
-                    }
-                });
-            }
+            document.getElementById('printDetailBtn').addEventListener('click', function() {
+                if (currentDocumentForShare) {
+                    printDocument(currentDocumentForShare.data);
+                }
+            });
 
-            const closeShareModalElement = document.getElementById('closeShareModal');
-            if (closeShareModalElement) {
-                closeShareModalElement.addEventListener('click', function() {
-                    document.getElementById('shareModal').style.display = 'none';
-                });
-            }
-            
-            const closeShareModalFooterElement = document.getElementById('closeShareModalFooter');
-            if (closeShareModalFooterElement) {
-                closeShareModalFooterElement.addEventListener('click', function() {
-                    document.getElementById('shareModal').style.display = 'none';
-                });
-            }
+            document.getElementById('closeShareModal').addEventListener('click', function() {
+                document.getElementById('shareModal').style.display = 'none';
+            });
+            document.getElementById('closeShareModalFooter').addEventListener('click', function() {
+                document.getElementById('shareModal').style.display = 'none';
+            });
 
-            const shareDownloadElement = document.getElementById('shareDownload');
-            if (shareDownloadElement) {
-                shareDownloadElement.addEventListener('click', () => downloadPDF());
-            }
+            document.getElementById('shareDownload').addEventListener('click', () => downloadPDF());
 
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && currentUser) {
@@ -5853,38 +5775,26 @@ function formatDate(dateString) {
             });
             
             // Clear payment details button
-            const clearPaymentDetailsElement = document.getElementById('clearPaymentDetails');
-            if (clearPaymentDetailsElement) {
-                clearPaymentDetailsElement.addEventListener('click', () => {
-                    if (confirm('Are you sure you want to clear the payment details?')) {
-                        document.getElementById('bankName').value = '';
-                        document.getElementById('bsb').value = '';
-                        document.getElementById('account').value = '';
-                        // Don't clear account name as it's a static field
-                        updatePaymentDetailsDisplay();
-                        
-                        // Also clear from storage
-                        localStorage.removeItem('lastPaymentDetails');
-                        
-                        if (currentUser) {
-                            db.collection('users').doc(currentUser.uid).update({
-                                lastPaymentDetails: firebase.firestore.FieldValue.delete()
-                            }).catch(error => {
-                                console.error("Error clearing payment details from Firestore:", error);
-                            });
-                        }
+            document.getElementById('clearPaymentDetails').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear the payment details?')) {
+                    document.getElementById('bankName').value = '';
+                    document.getElementById('bsb').value = '';
+                    document.getElementById('account').value = '';
+                    // Don't clear account name as it's a static field
+                    updatePaymentDetailsDisplay();
+                    
+                    // Also clear from storage
+                    localStorage.removeItem('lastPaymentDetails');
+                    
+                    if (currentUser) {
+                        db.collection('users').doc(currentUser.uid).update({
+                            lastPaymentDetails: firebase.firestore.FieldValue.delete()
+                        }).catch(error => {
+                            console.error("Error clearing payment details from Firestore:", error);
+                        });
                     }
-                });
-            }
-        }
-
-        // Share via SMS Function
-        function shareViaSMS(data) {
-            const message = `Hi ${data.billTo.name || ''}, here is your ${data.type.toLowerCase()} ${data.number} from ${companyInfo.name}. Total: $${data.total.toFixed(2)}. Contact ${companyInfo.phone} for details.`;
-            
-            // This works on mobile devices with SMS capability
-            const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
-            window.open(smsUrl, '_blank');
+                }
+            });
         }
 
         // Load bank details
@@ -5985,16 +5895,9 @@ function formatDate(dateString) {
                 updateSequenceDisplay();
                 console.log("UI updated with sequences.");
             } catch (error) {
-                // Don't show errors if user is not logged in (permission errors are expected)
-                if (!currentUser || error.code === 'permission-denied' || error.message.includes('Missing or insufficient permissions')) {
-                    console.log("Skipping sequences load - user not authenticated");
-                } else {
-                    console.error("Error loading user sequences:", error);
-                    showNotification("Error loading document sequences. Please try again.", "error");
-                }
-                
-                // Always update UI with default sequences
-                userSequences = { nextInvNumber: 1, nextQotNumber: 1 };
+                console.error("Error loading user sequences:", error);
+                showNotification("Error loading document sequences. Please try again.", "error");
+                userSequences = { nextInvNumber: 255, nextQotNumber: 288 };
                 updateSequenceDisplay();
             }
         }
@@ -6149,7 +6052,7 @@ function formatDate(dateString) {
 
         // Save document
         async function saveDocument() {
-            if (!currentUser || currentUser.uid !== ALLOWED_UID) {
+            if (!currentUser || !ALLOWED_UIDS.includes(currentUser.uid)) {
                 showNotification('You are not authorized to save documents.', 'error');
                 return;
             }
@@ -6286,7 +6189,7 @@ function formatDate(dateString) {
                         accountName: bankInfo.accountName
                     },
                     companyInfo: companyInfo,
-                    userId: ALLOWED_UID,
+                    userId: currentUser.uid,
                     userEmail: currentUser.email,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -6328,30 +6231,12 @@ function formatDate(dateString) {
                         }
 
                         const sequenceKey = type === 'Invoice' ? 'nextInvNumber' : 'nextQotNumber';
-                        try {
-                            await db.collection('users').doc(ALLOWED_UID).update({
-                                [sequenceKey]: firebase.firestore.FieldValue.increment(1),
-                                lastSequenceUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        } catch (seqErr) {
-                            console.warn('Sequence update failed via update():', seqErr && seqErr.message ? seqErr.message : seqErr);
-                            // Try to create/merge the field using set with merge:true
-                            try {
-                                const mergeObj = {
-                                    [sequenceKey]: (userSequences[sequenceKey] || 1) + 1,
-                                    lastSequenceUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                                };
-                                await db.collection('users').doc(ALLOWED_UID).set(mergeObj, { merge: true });
-                                console.log('Sequence incremented via set(..., {merge:true})');
-                            } catch (mergeErr) {
-                                console.error('Failed to set sequence on user doc:', mergeErr && mergeErr.message ? mergeErr.message : mergeErr);
-                                // Notify user but continue local flow
-                                showNotification('Warning: Could not update sequence number on server. It will be retried when possible.', 'warning');
-                            }
-                        }
+                        await db.collection('users').doc(ALLOWED_UID).update({
+                            [sequenceKey]: firebase.firestore.FieldValue.increment(1),
+                            lastSequenceUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                        });
 
-                        // Update local sequences and UI regardless of server outcome
-                        userSequences[sequenceKey] = (userSequences[sequenceKey] || 1) + 1;
+                        userSequences[sequenceKey]++;
                         updateSequenceDisplay();
                         
                         // Save updated sequences to IndexedDB
@@ -6521,6 +6406,20 @@ function formatDate(dateString) {
                 printWindow.close();
             };
         }
+// Share via WhatsApp Function
+function shareViaWhatsApp(data) {
+    const message = `Hello ${data.billTo.name || ''},
+
+Here is your ${data.type.toLowerCase()} ${data.number} from ${companyInfo.name}.
+Total Amount: $${data.total.toFixed(2)}
+
+You can view the details here: [Link to your app or a hosted PDF if available - otherwise omit]
+
+For any questions, contact us at ${companyInfo.phone}.`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
 
 // Share via SMS Function
 function shareViaSMS(data) {
@@ -7095,22 +6994,17 @@ ${companyInfo.email}`;
                 await updatePendingSyncCount();
 
             } catch (error) {
-                // Don't show errors if user is not logged in (permission errors are expected)
-                if (!currentUser || error.code === 'permission-denied') {
-                    console.log("Skipping document load - user not authenticated");
+                console.error("Error loading documents:", error);
+                
+                if (error.message.includes("The query requires an index")) {
+                    const indexUrl = error.message.split("here: ")[1];
+                    invoicesTableBody.innerHTML = `<tr><td colspan="6">Database index required. <a href="${indexUrl}" target="_blank">Create Index</a></td></tr>`;
+                    quotationsTableBody.innerHTML = `<tr><td colspan="6">Database index required. <a href="${indexUrl}" target="_blank">Create Index</a></td></tr>`;
+                    showNotification("Database index required. Please click the link to create it.", "warning");
                 } else {
-                    console.error("Error loading documents:", error);
-                    
-                    if (error.message.includes("The query requires an index")) {
-                        const indexUrl = error.message.split("here: ")[1];
-                        invoicesTableBody.innerHTML = `<tr><td colspan="6">Database index required. <a href="${indexUrl}" target="_blank">Create Index</a></td></tr>`;
-                        quotationsTableBody.innerHTML = `<tr><td colspan="6">Database index required. <a href="${indexUrl}" target="_blank">Create Index</a></td></tr>`;
-                        showNotification("Database index required. Please click the link to create it.", "warning");
-                    } else {
-                        invoicesTableBody.innerHTML = `<tr><td colspan="6">Error loading documents: ${error.message}</td></tr>`;
-                        quotationsTableBody.innerHTML = `<tr><td colspan="6">Error loading documents: ${error.message}</td></tr>`;
-                        showNotification("Error loading documents: " + error.message, "error");
-                    }
+                    invoicesTableBody.innerHTML = `<tr><td colspan="6">Error loading documents: ${error.message}</td></tr>`;
+                    quotationsTableBody.innerHTML = `<tr><td colspan="6">Error loading documents: ${error.message}</td></tr>`;
+                    showNotification("Error loading documents: " + error.message, "error");
                 }
             }
         }
@@ -7147,7 +7041,19 @@ ${companyInfo.email}`;
                     <td class="actions">
                         <button class="table-action-btn view" data-id="${doc.id}"><i class="fas fa-eye"></i> View</button>
                         <button class="table-action-btn edit" data-id="${doc.id}"><i class="fas fa-edit"></i></button>
-                        <button class="table-action-btn share" data-id="${doc.id}"><i class="fas fa-share-alt"></i></button>
+                        <div class="share-dropdown">
+                            <button class="table-action-btn share" onclick="toggleShareMenu('${doc.id}')" data-id="${doc.id}">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <div class="share-menu" id="shareMenu_${doc.id}">
+                                <button class="dropdown-item" onclick="shareViaWhatsApp('${doc.id}', '${type}')">
+                                    <i class="fab fa-whatsapp whatsapp-share"></i> WhatsApp
+                                </button>
+                                <button class="dropdown-item" onclick="shareViaSMS('${doc.id}', '${type}')">
+                                    <i class="fas fa-sms sms-share"></i> SMS
+                                </button>
+                            </div>
+                        </div>
                         <button class="table-action-btn print" data-id="${doc.id}"><i class="fas fa-print"></i></button>
                         <button class="table-action-btn delete" data-id="${doc.id}"><i class="fas fa-trash"></i></button>
                     </td>
@@ -7171,12 +7077,12 @@ ${companyInfo.email}`;
 
                 row.querySelector('.share').addEventListener('click', () => {
                     currentDocumentForShare = { data, docId: doc.id };
-                    document.getElementById('shareModal').style.display = 'flex';
+                    showShareModal(data);
                 });
                 
                 // Add print button event listener
                 row.querySelector('.print').addEventListener('click', () => {
-                    printDocument(data);
+                    handleDocument(data, 'print');
                 });
 
                 row.querySelector('.delete').addEventListener('click', async () => {
@@ -7767,52 +7673,31 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             }
             
             try {
-                // Try to read from server first for freshest data, but fall back to cache if unavailable
-                let userDoc;
-                try {
-                    userDoc = await db.collection('users').doc(ALLOWED_UID).get({ source: 'server' });
-                } catch (srvErr) {
-                    console.warn('Server read failed, trying cache:', srvErr && srvErr.message ? srvErr.message : srvErr);
-                    userDoc = await db.collection('users').doc(ALLOWED_UID).get({ source: 'default' });
-                }
-
+                const userDoc = await db.collection('users').doc(ALLOWED_UID).get({ source: 'server' });
+                
                 if (!userDoc.exists) {
-                    console.log("Creating authorized user document (with admin flag)...");
-
-                    // Use set with merge true to avoid overwriting if partial data exists
+                    console.log("Creating authorized user document...");
                     await db.collection('users').doc(ALLOWED_UID).set({
                         email: currentUser.email || "authorized@system.com",
                         companyInfo: companyInfo,
                         bankInfo: bankInfo,
                         appearanceSettings: appearanceSettings,
-                        nextInvNumber: userSequences.nextInvNumber || 1,
-                        nextQotNumber: userSequences.nextQotNumber || 1,
-                        isAdmin: true,
+                        nextInvNumber: 255,
+                        nextQotNumber: 288,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-
-                    console.log("Created or merged authorized user document with isAdmin flag");
+                    });
+                    console.log("Created authorized user document");
                 } else {
-                    // If it exists, ensure isAdmin flag is present
-                    const existing = userDoc.data() || {};
-                    if (!existing.isAdmin) {
-                        try {
-                            await db.collection('users').doc(ALLOWED_UID).set({ isAdmin: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-                            console.log('Set isAdmin flag on existing authorized user doc');
-                        } catch (setErr) {
-                            console.warn('Failed to set isAdmin flag via set(..., {merge:true}):', setErr && setErr.message ? setErr.message : setErr);
-                        }
-                    }
-                    console.log("Authorized user document already exists (ensured admin flag)");
+                    console.log("Authorized user document already exists");
                 }
             } catch (error) {
-                console.error("Error ensuring allowed user exists (code/message):", error && error.code, error && error.message);
-                if (error && (error.code === 'permission-denied' || (error.message && error.message.includes('Missing or insufficient permissions')))) {
+                console.error("Error ensuring allowed user exists:", error);
+                if (error.message.includes('Missing or insufficient permissions')) {
                     console.log("Permission error - user might not be authenticated yet or rules not updated");
                     showNotification("Permission error. Please ensure Firebase security rules are updated.", "warning");
                 } else {
-                    showNotification("Error setting up user data: " + (error && error.message ? error.message : error), "error");
+                    showNotification("Error setting up user data: " + error.message, "error");
                 }
             }
         }
@@ -7825,6 +7710,28 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             printDocument(data);
         }
 // Share via WhatsApp Function
+function shareViaWhatsApp(data) {
+    const message = `Hello ${data.billTo.name || ''},
+
+Here is your ${data.type.toLowerCase()} ${data.number} from ${companyInfo.name}.
+Total Amount: $${data.total.toFixed(2)}
+
+You can view the details here: [Link to your app or a hosted PDF if available - otherwise omit]
+
+For any questions, contact us at ${companyInfo.phone}.`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+// Share via SMS Function
+function shareViaSMS(data) {
+    const message = `Hi ${data.billTo.name || ''}, here is your ${data.type.toLowerCase()} ${data.number} from ${companyInfo.name}. Total: $${data.total.toFixed(2)}. Contact ${companyInfo.phone} for details.`;
+    
+    // This works on mobile devices with SMS capability
+    const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+    window.open(smsUrl, '_blank');
+}
         // Initialize the application
         window.addEventListener('DOMContentLoaded', async () => {
             // Initialize IndexedDB first
@@ -7884,17 +7791,10 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
                 
                 switch (error.code) {
                     case 'auth/user-not-found':
-                        errorMessage = 'No user found with this email address. Please create an account or check your email.';
+                        errorMessage = 'No user found with this email address.';
                         break;
                     case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                    case 'auth/internal-error':
-                        // Check if the error message contains INVALID_LOGIN_CREDENTIALS
-                        if (error.message && error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
-                            errorMessage = '❌ Invalid email or password. Please check your credentials and try again.';
-                        } else {
-                            errorMessage = 'Incorrect password. Please try again.';
-                        }
+                        errorMessage = 'Incorrect password.';
                         break;
                     case 'auth/email-already-in-use':
                         errorMessage = 'Email address is already in use.';
@@ -7909,7 +7809,7 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
                         errorMessage = 'Network error. Please check your connection.';
                         break;
                     case 'auth/too-many-requests':
-                        errorMessage = '🔒 Account temporarily locked due to multiple failed attempts. Please wait 15-30 minutes or reset your password.';
+                        errorMessage = 'Too many failed attempts. Please try again later.';
                         break;
                     case 'auth/user-disabled':
                         errorMessage = 'This account has been disabled.';
@@ -7927,17 +7827,15 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             }
         });
 
-        // Toggle Auth Mode (with null check)
-        const toggleAuthModeElement = document.getElementById('toggleAuthMode');
-        if (toggleAuthModeElement) {
-            toggleAuthModeElement.addEventListener('click', (e) => {
-                e.preventDefault();
-                const submitBtn = document.getElementById('authSubmitBtn');
-                const toggleLink = document.getElementById('toggleAuthMode');
-                const buttonText = document.getElementById('authButtonText');
-                
-                if (buttonText.textContent === 'Login') {
-                    buttonText.textContent = 'Sign Up';
+        // Toggle Auth Mode
+        document.getElementById('toggleAuthMode').addEventListener('click', (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleLink = document.getElementById('toggleAuthMode');
+            const buttonText = document.getElementById('authButtonText');
+            
+            if (buttonText.textContent === 'Login') {
+                buttonText.textContent = 'Sign Up';
                 toggleLink.textContent = 'Already have an account? Login';
             } else {
                 buttonText.textContent = 'Login';
@@ -7946,107 +7844,6 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             
             document.getElementById('authEmailError').style.display = 'none';
         });
-        }
-
-        // Forgot Password Link Event Listener
-        const forgotPasswordLinkElement = document.getElementById('forgotPasswordLink');
-        if (forgotPasswordLinkElement) {
-            forgotPasswordLinkElement.addEventListener('click', (e) => {
-                e.preventDefault();
-                showForgotPasswordModal();
-            });
-        }
-
-        // Back to Login Link Event Listener
-        const backToLoginLinkElement = document.getElementById('backToLoginLink');
-        if (backToLoginLinkElement) {
-            backToLoginLinkElement.addEventListener('click', (e) => {
-                e.preventDefault();
-                hideForgotPasswordModal();
-            });
-        }
-
-        // Close Forgot Password Modal Event Listener
-        const closeForgotPasswordModalElement = document.getElementById('closeForgotPasswordModal');
-        if (closeForgotPasswordModalElement) {
-            closeForgotPasswordModalElement.addEventListener('click', () => {
-                hideForgotPasswordModal();
-            });
-        }
-
-        // Forgot Password Form Submission
-        const forgotPasswordFormElement = document.getElementById('forgotPasswordForm');
-        if (forgotPasswordFormElement) {
-            forgotPasswordFormElement.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('resetEmail').value;
-
-            if (!email) {
-                document.getElementById('resetEmailError').textContent = 'Please enter your email address.';
-                document.getElementById('resetEmailError').style.display = 'block';
-                return;
-            }
-
-            const submitBtn = document.getElementById('resetSubmitBtn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<div class="loading-spinner"></div> Sending...';
-
-            // Hide previous messages
-            document.getElementById('resetEmailError').style.display = 'none';
-            document.getElementById('resetEmailSuccess').style.display = 'none';
-
-            try {
-                console.log('Attempting to send password reset email to:', email);
-                const result = await sendPasswordReset(email);
-                console.log('Password reset result:', result);
-                
-                if (result.success) {
-                    document.getElementById('resetEmailSuccess').textContent = 
-                        'Password reset email sent! Check your inbox (and spam folder) for instructions.';
-                    document.getElementById('resetEmailSuccess').style.display = 'block';
-                    document.getElementById('resetEmail').value = '';
-                    showNotification('Password reset email sent successfully! Check your inbox.', 'success');
-                    
-                    // Auto-hide modal after 5 seconds (more time to read)
-                    setTimeout(() => {
-                        hideForgotPasswordModal();
-                    }, 5000);
-                } else {
-                    let errorMessage = 'Failed to send reset email. Please try again.';
-                    
-                    // Handle specific Firebase error codes
-                    if (result.errorCode === 'auth/user-not-found' || result.error.includes('user-not-found')) {
-                        errorMessage = 'No account found with this email address.';
-                    } else if (result.errorCode === 'auth/invalid-email' || result.error.includes('invalid-email')) {
-                        errorMessage = 'Please enter a valid email address.';
-                    } else if (result.errorCode === 'auth/network-request-failed' || result.error.includes('network-request-failed')) {
-                        errorMessage = 'Network error. Please check your internet connection and try again.';
-                    } else if (result.errorCode === 'auth/too-many-requests' || result.error.includes('too-many-requests')) {
-                        errorMessage = 'Too many attempts. Please wait a few minutes and try again.';
-                    } else if (result.errorCode === 'auth/operation-not-allowed' || result.error.includes('operation-not-allowed')) {
-                        errorMessage = 'Password reset is not enabled. Please contact support.';
-                    } else {
-                        errorMessage = `Error: ${result.error}`;
-                    }
-                    
-                    console.error('Password reset failed:', errorMessage);
-                    document.getElementById('resetEmailError').textContent = errorMessage;
-                    document.getElementById('resetEmailError').style.display = 'block';
-                    showNotification(errorMessage, 'error');
-                }
-            } catch (error) {
-                console.error('Unexpected forgot password error:', error);
-                const errorMsg = error.message || 'An unexpected error occurred. Please try again.';
-                document.getElementById('resetEmailError').textContent = errorMsg;
-                document.getElementById('resetEmailError').style.display = 'block';
-                showNotification(errorMsg, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
-            });
-        }
 
         // Check for remembered email on page load
         window.addEventListener('DOMContentLoaded', () => {
@@ -8110,210 +7907,24 @@ document.getElementById('smsShareBtn')?.addEventListener('click', function () {
     window.open(`sms:${mobileNumber}?body=${encodeURIComponent(shareText)}`);
 });
 
-// Enhanced sharing functions that work with document data directly
-function shareViaWhatsAppDirect(data) {
-    try {
-        const message = buildShareMessage(data, data.type?.toLowerCase() || 'document');
-        
-        // Get client phone number
-        const clientPhone = data.billTo?.mobile || data.clientMobile || '';
-        
-        // Use proper WhatsApp URL scheme for better app integration
-        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-        const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
-        const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-        
-        if (isMobile) {
-            // For mobile devices, use the WhatsApp app URL scheme with phone number if available
-            let whatsappUrl;
-            if (clientPhone) {
-                // Remove all non-numeric characters and add country code if needed
-                const cleanPhone = clientPhone.replace(/\D/g, '');
-                const phoneWithCountry = cleanPhone.startsWith('61') ? cleanPhone : `61${cleanPhone.startsWith('0') ? cleanPhone.slice(1) : cleanPhone}`;
-                whatsappUrl = `whatsapp://send?phone=${phoneWithCountry}&text=${encodeURIComponent(message)}`;
-            } else {
-                whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
-            }
-            
-            // For iOS, use a different approach
-            if (isIOS) {
-                // Create a hidden iframe to try opening the app
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = whatsappUrl;
-                document.body.appendChild(iframe);
-                
-                // Remove iframe after attempting to open
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 1000);
-                
-                // Fallback after delay
-                setTimeout(() => {
-                    if (clientPhone) {
-                        const cleanPhone = clientPhone.replace(/\D/g, '');
-                        const phoneWithCountry = cleanPhone.startsWith('61') ? cleanPhone : `61${cleanPhone.startsWith('0') ? cleanPhone.slice(1) : cleanPhone}`;
-                        window.open(`https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`, '_blank');
-                    } else {
-                        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                    }
-                }, 1500);
-            } else {
-                // For Android, try direct URL change first
-                window.location.href = whatsappUrl;
-                
-                // Fallback to web version after delay
-                setTimeout(() => {
-                    if (clientPhone) {
-                        const cleanPhone = clientPhone.replace(/\D/g, '');
-                        const phoneWithCountry = cleanPhone.startsWith('61') ? cleanPhone : `61${cleanPhone.startsWith('0') ? cleanPhone.slice(1) : cleanPhone}`;
-                        window.open(`https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`, '_blank');
-                    } else {
-                        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                    }
-                }, 1500);
-            }
-        } else {
-            // For desktop, use web WhatsApp with phone number if available
-            if (clientPhone) {
-                const cleanPhone = clientPhone.replace(/\D/g, '');
-                const phoneWithCountry = cleanPhone.startsWith('61') ? cleanPhone : `61${cleanPhone.startsWith('0') ? cleanPhone.slice(1) : cleanPhone}`;
-                window.open(`https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`, '_blank');
-            } else {
-                window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
-            }
-        }
-        
-        document.getElementById('shareModal').style.display = 'none';
-        showNotification(`Opening WhatsApp to share ${data.type || 'document'}`, 'info');
-    } catch (error) {
-        console.error('WhatsApp sharing error:', error);
-        showNotification(`Error sharing via WhatsApp: ${error.message}`, 'error');
-    }
-}
-
-function shareViaSMSDirect(data) {
-    try {
-        const message = buildShareMessage(data, data.type?.toLowerCase() || 'document');
-        
-        // Get client phone number from the document data
-        const clientPhone = data.billTo?.mobile || data.clientMobile || '';
-        
-        // Create SMS URL that will open the default messages app
-        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-        const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-        const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
-        
-        let smsUrl;
-        if (isIOS) {
-            // iOS SMS URL scheme
-            smsUrl = `sms:${clientPhone}&body=${encodeURIComponent(message)}`;
-        } else {
-            // Android and other platforms SMS URL scheme
-            smsUrl = `sms:${clientPhone}?body=${encodeURIComponent(message)}`;
-        }
-        
-        if (isMobile) {
-            // For mobile devices, try multiple approaches for better app opening
-            if (isIOS) {
-                // iOS approach - use window.location for better app integration
-                window.location.href = smsUrl;
-            } else {
-                // Android approach - use intent URL if available, fallback to sms:
-                try {
-                    // Try Android intent first
-                    const intentUrl = `intent://send?text=${encodeURIComponent(message)}${clientPhone ? `&to=${clientPhone}` : ''}#Intent;scheme=sms;package=com.android.mms;end`;
-                    window.location.href = intentUrl;
-                } catch (e) {
-                    // Fallback to standard SMS URL
-                    window.location.href = smsUrl;
-                }
-            }
-        } else {
-            // For desktop, create and click a link
-            const link = document.createElement('a');
-            link.href = smsUrl;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        document.getElementById('shareModal').style.display = 'none';
-        
-        if (clientPhone) {
-            showNotification(`Opening Messages app to send ${data.type || 'document'} to ${clientPhone}`, 'info');
-        } else {
-            showNotification(`Opening Messages app - please enter recipient manually`, 'info');
-        }
-    } catch (error) {
-        console.error('SMS sharing error:', error);
-        showNotification(`Error sharing via SMS: ${error.message}`, 'error');
-    }
-}
-
-function shareViaEmailDirect(data) {
-    try {
-        const message = buildShareMessage(data, data.type?.toLowerCase() || 'document');
-        
-        // Get client email from the document data
-        const clientEmail = data.billTo?.email || data.clientEmail || '';
-        
-        // Create email subject and body
-        const companyName = companyInfo.name || 'SMART SQUAD M BUILD PTY LTD';
-        const subject = `${data.type || 'Document'} ${data.number || ''} from ${companyName}`;
-        const body = `Dear ${data.billTo?.name || data.clientName || 'Client'},\n\n${message}\n\nBest regards,\n${companyName}`;
-        
-        // Create mailto URL
-        const emailUrl = `mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        
-        // Create and click a link to trigger email client
-        const link = document.createElement('a');
-        link.href = emailUrl;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        document.getElementById('shareModal').style.display = 'none';
-        
-        if (clientEmail) {
-            showNotification(`Opening email client to send ${data.type || 'document'} to ${clientEmail}`, 'info');
-        } else {
-            showNotification(`Opening email client - please enter recipient manually`, 'info');
-        }
-    } catch (error) {
-        console.error('Email sharing error:', error);
-        showNotification(`Error sharing via Email: ${error.message}`, 'error');
-    }
-}
-
-// Proper sharing functions that work with currentDocumentForShare
 document.getElementById('shareWhatsapp').addEventListener('click', function() {
-    console.log('WhatsApp share clicked', currentDocumentForShare);
-    if (currentDocumentForShare && currentDocumentForShare.data) {
-        shareViaWhatsAppDirect(currentDocumentForShare.data);
-    } else {
-        showNotification('Please select a document to share first.', 'warning');
-    }
+    var phone = document.querySelector('input[aria-label="Mobile"]').value;
+    var clientName = document.querySelector('input[aria-label="Client Name"]').value;
+    var invoiceNumber = document.querySelector('input[aria-label="Document Number#"]').value;
+    var totalAmount = document.querySelector('input[aria-label="Total Amount"]').value || "";
+    var message = `Hi ${clientName}, your invoice #${invoiceNumber} for $${totalAmount} is ready. Thank you!`;
+    var url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
 });
 
 document.getElementById('shareSMS').addEventListener('click', function() {
-    console.log('SMS share clicked', currentDocumentForShare);
-    if (currentDocumentForShare && currentDocumentForShare.data) {
-        shareViaSMSDirect(currentDocumentForShare.data);
-    } else {
-        showNotification('Please select a document to share first.', 'warning');
-    }
-});
-
-document.getElementById('shareEmail').addEventListener('click', function() {
-    console.log('Email share clicked', currentDocumentForShare);
-    if (currentDocumentForShare && currentDocumentForShare.data) {
-        shareViaEmailDirect(currentDocumentForShare.data);
-    } else {
-        showNotification('Please select a document to share first.', 'warning');
-    }
+    var phone = document.querySelector('input[aria-label="Mobile"]').value;
+    var clientName = document.querySelector('input[aria-label="Client Name"]').value;
+    var invoiceNumber = document.querySelector('input[aria-label="Document Number#"]').value;
+    var totalAmount = document.querySelector('input[aria-label="Total Amount"]').value || "";
+    var message = `Hi ${clientName}, your invoice #${invoiceNumber} for $${totalAmount} is ready. Thank you!`;
+    var smsUrl = `sms:${phone}?body=${encodeURIComponent(message)}`;
+    window.open(smsUrl);
 });
 
 
