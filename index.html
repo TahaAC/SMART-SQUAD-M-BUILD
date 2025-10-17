@@ -3615,7 +3615,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="settingsPdfTerms" class="form-label">Payment Terms</label>
-                                <textarea id="settingsPdfTerms" class="glass-input" rows="4" placeholder="Payment terms...">Payment due within 7 days. Late payments may incur interest at 5% per month.</textarea>
+                                <textarea id="settingsPdfTerms" class="glass-input" rows="4" placeholder="Payment terms..."></textarea>
                             </div>
                         </form>
                     </div>
@@ -3672,7 +3672,7 @@
             secondaryColor: "#2c5282",
             accentColor: "#f97316",
             pdfFooter: "Thank you for your business!",
-            pdfTerms: "Payment due within 7 days. Late payments may incur interest at 5% per month."
+            pdfTerms: ""
         };
         let userSequences = { nextInvNumber: 255, nextQotNumber: 288 }; // Updated starting numbers
         let logoData = "logo.png";
@@ -5108,6 +5108,8 @@ function formatDate(dateString) {
                     // Load appearance settings
                     if (userData.appearanceSettings) {
                         appearanceSettings = { ...appearanceSettings, ...userData.appearanceSettings };
+                        // Force clear payment terms
+                        appearanceSettings.pdfTerms = '';
                         applyAppearanceSettings();
                     }
                     
@@ -5115,6 +5117,11 @@ function formatDate(dateString) {
                     if (userData.logoUrl) {
                         logoData = userData.logoUrl;
                     }
+                    
+                    // Force save cleared payment terms back to Firebase
+                    await db.collection('users').doc(currentUser.uid).update({
+                        'appearanceSettings.pdfTerms': ''
+                    });
                     
                     // Load bank details for form
                     if (userData.bankDetails) {
@@ -5138,7 +5145,7 @@ function formatDate(dateString) {
                     await saveSettingsToIndexedDB({
                         companyInfo,
                         bankInfo,
-                        appearanceSettings,
+                        appearanceSettings: { ...appearanceSettings, pdfTerms: '' },
                         logoData
                     });
                     
@@ -5330,7 +5337,7 @@ function formatDate(dateString) {
                         secondaryColor: "#2c5282",
                         accentColor: "#f97316",
                         pdfFooter: "Thank you for your business!",
-                        pdfTerms: "Payment due within 7 days. Late payments may incur interest at 5% per month."
+                        pdfTerms: ""
                     };
                     
                     logoData = "logo.png";
@@ -8399,12 +8406,44 @@ document.getElementById('shareEmail').addEventListener('click', function() {
         if (typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().onAuthStateChanged(function(user) {
                 const footer = document.getElementById('developerCredit');
+                const authModalEl = document.getElementById('authModal');
+                const forgotModalEl = document.getElementById('forgotPasswordModal');
+
+                // Always remove payment terms from settings and runtime
+                if (window.appearanceSettings) {
+                    appearanceSettings.pdfTerms = '';
+                }
+                const termsField = document.getElementById('settingsPdfTerms');
+                if (termsField) termsField.value = '';
+
                 if (user) {
-                    setTimeout(function() {
-                        footer.style.display = 'block';
-                    }, 500);
+                    // Show footer and hide auth/forgot modals on login
+                    if (footer) {
+                        setTimeout(function() {
+                            footer.style.display = 'block';
+                        }, 500);
+                    }
+                    if (forgotModalEl) forgotModalEl.style.display = 'none';
+                    if (authModalEl) {
+                        authModalEl.style.display = 'none';
+                        authModalEl.classList.remove('active');
+                    }
                 } else {
-                    footer.style.display = 'none';
+                    // Hide footer and ensure auth modal is shown, forgot hidden
+                    if (footer) footer.style.display = 'none';
+                    if (forgotModalEl) {
+                        forgotModalEl.style.display = 'none';
+                        const resetErr = document.getElementById('resetEmailError');
+                        const resetSucc = document.getElementById('resetEmailSuccess');
+                        const resetInput = document.getElementById('resetEmail');
+                        if (resetErr) resetErr.style.display = 'none';
+                        if (resetSucc) resetSucc.style.display = 'none';
+                        if (resetInput) resetInput.value = '';
+                    }
+                    if (authModalEl) {
+                        authModalEl.style.display = 'flex';
+                        authModalEl.classList.add('active');
+                    }
                 }
             });
         }
@@ -8412,7 +8451,3 @@ document.getElementById('shareEmail').addEventListener('click', function() {
 
 </body>
 </html>
-
-
-
-
