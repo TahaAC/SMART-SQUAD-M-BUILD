@@ -3034,6 +3034,152 @@
             display: inline-block;
         }
 
+        /* Authentication Modal Styles */
+        .modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-xl);
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-bottom: 2px solid var(--border-color);
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius-sm);
+            transition: all var(--transition-normal);
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .modal-body {
+            padding: var(--spacing-md);
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .auth-logo img {
+            max-width: 120px;
+            height: auto;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-md);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: var(--spacing-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .forgot-password-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color var(--transition-normal);
+        }
+
+        .forgot-password-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .reset-description {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: var(--spacing-md);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
     </style>
 </head>
 <body>
@@ -3082,6 +3228,7 @@
                     </button>
                     <div class="auth-links">
                         <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot your password?</a>
+                        <a href="#" id="toggleAuthMode" class="forgot-password-link">Need an account? Sign Up</a>
                     </div>
                     <div id="authEmailError" class="error-message" style="display: none;"></div>
                 </form>
@@ -7792,6 +7939,32 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             printDocument(data);
         }
 // Share via WhatsApp Function
+        // Forgot Password Modal Functions
+        function showForgotPasswordModal() {
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+            
+            // Clear any previous error/success messages
+            document.getElementById('resetEmailError').style.display = 'none';
+            document.getElementById('resetEmailSuccess').style.display = 'none';
+            document.getElementById('resetEmail').value = '';
+            
+            // Focus on email input
+            setTimeout(() => {
+                document.getElementById('resetEmail').focus();
+            }, 100);
+        }
+
+        function hideForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('authModal').style.display = 'flex';
+            
+            // Clear form and messages
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('resetEmailError').style.display = 'none';
+            document.getElementById('resetEmailSuccess').style.display = 'none';
+        }
+
         // Initialize the application
         window.addEventListener('DOMContentLoaded', async () => {
             // Initialize IndexedDB first
@@ -7964,39 +8137,44 @@ function enableAutocomplete(inputElement, suggestionElement, acceptButton) {
             document.getElementById('resetEmailSuccess').style.display = 'none';
 
             try {
-                const result = await sendPasswordReset(email);
+                // Use Firebase's built-in sendPasswordResetEmail method
+                await auth.sendPasswordResetEmail(email);
                 
-                if (result.success) {
-                    document.getElementById('resetEmailSuccess').textContent = 
-                        'Password reset email sent! Check your inbox for instructions.';
-                    document.getElementById('resetEmailSuccess').style.display = 'block';
-                    document.getElementById('resetEmail').value = '';
-                    showNotification('Password reset email sent successfully!', 'success');
-                    
-                    // Auto-hide modal after 3 seconds
-                    setTimeout(() => {
-                        hideForgotPasswordModal();
-                    }, 3000);
-                } else {
-                    let errorMessage = 'Failed to send reset email. Please try again.';
-                    
-                    if (result.error.includes('user-not-found')) {
-                        errorMessage = 'No account found with this email address.';
-                    } else if (result.error.includes('invalid-email')) {
-                        errorMessage = 'Please enter a valid email address.';
-                    } else if (result.error.includes('network-request-failed')) {
-                        errorMessage = 'Network error. Please check your connection.';
-                    }
-                    
-                    document.getElementById('resetEmailError').textContent = errorMessage;
-                    document.getElementById('resetEmailError').style.display = 'block';
-                    showNotification(errorMessage, 'error');
-                }
+                document.getElementById('resetEmailSuccess').textContent = 
+                    'Password reset email sent! Check your inbox for instructions.';
+                document.getElementById('resetEmailSuccess').style.display = 'block';
+                document.getElementById('resetEmail').value = '';
+                showNotification('Password reset email sent successfully!', 'success');
+                
+                // Auto-hide modal after 3 seconds
+                setTimeout(() => {
+                    hideForgotPasswordModal();
+                }, 3000);
+                
             } catch (error) {
                 console.error('Forgot password error:', error);
-                document.getElementById('resetEmailError').textContent = 'An unexpected error occurred. Please try again.';
+                let errorMessage = 'Failed to send reset email. Please try again.';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'No account found with this email address.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Please enter a valid email address.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Network error. Please check your connection.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Too many reset attempts. Please wait before trying again.';
+                        break;
+                    default:
+                        errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+                }
+                
+                document.getElementById('resetEmailError').textContent = errorMessage;
                 document.getElementById('resetEmailError').style.display = 'block';
-                showNotification('An unexpected error occurred. Please try again.', 'error');
+                showNotification(errorMessage, 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
